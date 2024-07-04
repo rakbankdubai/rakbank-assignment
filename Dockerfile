@@ -4,7 +4,7 @@ FROM openjdk:17-jdk-slim AS runtime
 WORKDIR /app
 
 # Copy the JAR file into the container
-COPY demo-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY ./demo/target/demo-0.0.1-SNAPSHOT.jar /app/app.jar
 
 EXPOSE 8088
 
