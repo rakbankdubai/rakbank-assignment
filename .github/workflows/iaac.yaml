@@ -1,7 +1,6 @@
 name: terraform infra creation
 on: 
   workflow_dispatch:  # You can trigger this workflow manually or on other events (push, pull_request)
-  workflow_call:
     inputs:
       working-directory:
         required: true
