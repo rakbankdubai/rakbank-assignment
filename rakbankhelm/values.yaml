@@ -1,0 +1,29 @@
+replicaCount: 2
+
+image:
+  repository: aaryadaarya/rakbank
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8088
+
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: rakbank.example.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+hpa:
+  minReplicas: 1
+  maxReplicas: 10
+  cpu:
+    targetAverageUtilization: 50
+  memory:
+    targetAverageUtilization: 50
