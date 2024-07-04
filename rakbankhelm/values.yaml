@@ -13,12 +13,19 @@ ingress:
   enabled: true
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
   hosts:
-    - host: rakbank.example.com
+    - host: test.mkisaan.com
       paths:
         - path: /
-          pathType: ImplementationSpecific
-  tls: []
+          pathType: Prefix
+  tls:
+    - secretName: rakbank-tls
+      hosts:
+        - test.mkisaan.com
 
 hpa:
   minReplicas: 1
@@ -27,3 +34,17 @@ hpa:
     targetAverageUtilization: 50
   memory:
     targetAverageUtilization: 50
+
+readinessProbe:
+  httpGet:
+    path: /helloWorld
+    port: 8088
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+livenessProbe:
+  httpGet:
+    path: /helloWorld
+    port: 8088
+  initialDelaySeconds: 15
+  periodSeconds: 20
