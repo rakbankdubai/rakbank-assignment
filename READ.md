@@ -1,5 +1,6 @@
 # Rakbank Assignment
 
+
 This repository contains the necessary configurations and scripts for deploying a sample application to an AWS EKS cluster using Helm.
 
 ## Table of Contents
