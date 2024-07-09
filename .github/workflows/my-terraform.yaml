@@ -1,7 +1,11 @@
 name: terraform infra creation
 on: 
   workflow_dispatch:  # You can trigger this workflow manually or on other events (push, pull_request)
-
+  push:
+    branches:
+      - main
+    paths:
+      - 'rakbank-terraform/**'
 jobs:
   build:
     name: terraform infra creation
