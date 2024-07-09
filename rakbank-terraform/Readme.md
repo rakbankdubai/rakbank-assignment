@@ -1,1 +1,2 @@
 terraform apply
+#terraform destroy
