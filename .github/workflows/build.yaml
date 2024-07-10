@@ -23,7 +23,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: '17'
-        distribution: 'temurin'  # or 'adopt'
+        distribution: 'temurin'
 
     - name: Cache Maven packages
       uses: actions/cache@v3
@@ -74,7 +74,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: '17'
-        distribution: 'temurin'  # or 'adopt'
+        distribution: 'temurin'
 
     - name: Cache Maven packages
       uses: actions/cache@v3
@@ -109,6 +109,10 @@ jobs:
       run: |
         aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 211125715340.dkr.ecr.ap-south-1.amazonaws.com
 
+    - name: Set up Kubeconfig
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
+
     - name: Build and push Docker image
       env:
         ECR_REGISTRY: 211125715340.dkr.ecr.ap-south-1.amazonaws.com
@@ -116,9 +120,11 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG)
+        echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-    - name: Deploy to Kubernetes
+    - name: Create or Update Kubernetes Deployment
       run: |
         aws eks update-kubeconfig --name my-cluster --region ap-south-1
-        kubectl create deployment rakbankdemoapp --image=211125715340.dkr.ecr.ap-south-1.amazonaws.com/rakbankdemoregistry@sha256:d0edfc35051f486bd76fda895bc214d85dd085bb0e9455861ef17e10e27c0943
+        kubectl create deployment rakbankdemoapp --image=${{ env.IMAGE_DIGEST }} --dry-run=client -o yaml | kubectl apply -f -
