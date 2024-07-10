@@ -16,26 +16,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install Basic Utilities
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential curl file git
-
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Install SDKMAN and Maven
+    - name: Install Maven
       run: |
-        curl -s "https://get.sdkman.io" | bash
-        source "$HOME/.sdkman/bin/sdkman-init.sh"
-        sdk install maven
+        sudo apt-get update
+        sudo apt-get install -y maven
 
     - name: Verify Java and Maven Version
       run: |
-        source "$HOME/.sdkman/bin/sdkman-init.sh"
         java -version
         mvn -version
 
@@ -47,17 +40,14 @@ jobs:
         restore-keys: ${{ runner.os }}-maven
 
     - name: Build with Maven (Sonar Preparation)
-      run: |
-        source "$HOME/.sdkman/bin/sdkman-init.sh"
-        mvn clean compile --file demo/pom.xml
+      run: mvn clean compile --file demo/pom.xml
 
     - name: Run SonarCloud Scan
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
-        PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64/bin:$PATH:$HOME/.sdkman/candidates/maven/current/bin
+        PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64/bin:$PATH:/usr/share/maven/bin
       run: |
-        source "$HOME/.sdkman/bin/sdkman-init.sh"
         java -version
         mvn --version
         mvn sonar:sonar \
@@ -106,9 +96,7 @@ jobs:
         restore-keys: ${{ runner.os }}-maven
 
     - name: Build with Maven
-      run: |
-        source "$HOME/.sdkman/bin/sdkman-init.sh"
-        mvn -B package --file demo/pom.xml
+      run: mvn -B package --file demo/pom.xml
 
     - name: Verify .jar file exists
       run: ls -l demo/target/*.jar
