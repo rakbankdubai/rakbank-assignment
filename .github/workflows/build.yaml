@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      quality_gate_passed: ${{ steps.check_quality_gate.outputs.passed }}
+      quality_gate_passed: ${{ steps.check_quality_gate.outputs.quality_gate_status }}
 
     steps:
     - name: Checkout code
@@ -46,17 +46,25 @@ jobs:
 
     - name: Check Quality Gate
       id: check_quality_gate
-      uses: SonarSource/sonarcloud-quality-gate-action@v1.0.0
-      with:
-        projectKey: rakbankdubai_rakbank-assignment
-        organization: rakbankdubai
+      run: |
+        echo "Checking Quality Gate status..."
+        status=$(curl -s -u $SONAR_TOKEN: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=rakbankdubai_rakbank-assignment" | jq -r .projectStatus.status)
+        echo "Quality Gate status: $status"
+        if [ "$status" != "OK" ]; then
+          echo "Quality Gate failed"
+          echo "::set-output name=quality_gate_status::failed"
+          exit 1
+        else
+          echo "Quality Gate passed"
+          echo "::set-output name=quality_gate_status::passed"
+        fi
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
     needs: sonar
     runs-on: ubuntu-latest
-    if: needs.sonar.outputs.quality_gate_passed == 'true'
+    if: needs.sonar.outputs.quality_gate_passed == 'passed'
 
     steps:
     - name: Checkout code
@@ -101,18 +109,19 @@ jobs:
       run: |
         aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 211125715340.dkr.ecr.ap-south-1.amazonaws.com
 
+    - name: Set up Kubeconfig
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config   
+
     - name: Build and push Docker image
       env:
         ECR_REGISTRY: 211125715340.dkr.ecr.ap-south-1.amazonaws.com
         ECR_REPOSITORY: rakbankdemoregistry
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG demo/.
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
     - name: Deploy to Kubernetes
-      env:
-        KUBECONFIG: ${{ secrets.KUBECONFIG }}
       run: |
         kubectl set image deployment/rakbankdemoapp rakbankdemoapp=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
