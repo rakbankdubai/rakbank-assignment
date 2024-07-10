@@ -39,21 +39,19 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven
 
+    - name: Set Environment Variables
+      run: |
+        echo "M2_HOME=/usr/share/maven" >> $GITHUB_ENV
+        echo "JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64" >> $GITHUB_ENV
+        echo "PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" >> $GITHUB_ENV
+
     - name: Build with Maven (Sonar Preparation)
       run: mvn clean compile --file demo/pom.xml
 
     - name: Run SonarCloud Scan
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
-        PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64/bin:$PATH:/usr/share/maven/bin
-      run: |
-        java -version
-        mvn sonar:sonar \
-          -Dsonar.projectKey=rakbankdubai_rakbank-assignment \
-          -Dsonar.organization=rakbankdubai \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      run: mvn sonar:sonar -Dsonar.projectKey=rakbankdubai_rakbank-assignment -Dsonar.organization=rakbankdubai -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
     - name: Check Quality Gate
       id: check_quality_gate
@@ -71,6 +69,7 @@ jobs:
         fi
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
 
   build:
     needs: sonar
