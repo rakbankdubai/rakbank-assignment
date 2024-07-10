@@ -12,6 +12,9 @@ jobs:
   sonar:
     runs-on: ubuntu-latest
 
+    outputs:
+      quality_gate_passed: ${{ steps.check_quality_gate.outputs.passed }}
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -53,7 +56,7 @@ jobs:
   build:
     needs: sonar
     runs-on: ubuntu-latest
-    if: steps.check_quality_gate.outputs.passed == 'true'
+    if: needs.sonar.outputs.quality_gate_passed == 'true'
 
     steps:
     - name: Checkout code
