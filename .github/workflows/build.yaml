@@ -16,6 +16,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Install Basic Utilities
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential curl file git
+
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
