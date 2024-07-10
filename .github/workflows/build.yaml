@@ -121,4 +121,5 @@ jobs:
     - name: Deploy to Kubernetes
       run: |
         aws eks update-kubeconfig --name my-cluster --region ap-south-1
-        kubectl create deployment rakbankdemoapp --image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        kubectl create deployment rakbankdemoapp --image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --dry-run=client -o yaml > deployment.yaml
+        kubectl apply -f deployment.yaml
