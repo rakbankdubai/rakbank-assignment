@@ -22,11 +22,10 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Install SDKMAN
+    - name: Install Maven
       run: |
-        curl -s "https://get.sdkman.io" | bash
-        source "$HOME/.sdkman/bin/sdkman-init.sh"
-        sdk install maven
+        sudo apt-get update
+        sudo apt-get install -y maven
 
     - name: Verify Java and Maven Version
       run: |
@@ -47,7 +46,7 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
-        PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64/bin:$PATH:$HOME/.sdkman/candidates/maven/current/bin
+        PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64/bin:$PATH:/usr/share/maven/bin
       run: |
         java -version
         mvn --version
@@ -102,42 +101,42 @@ jobs:
     - name: Verify .jar file exists
       run: ls -l demo/target/*.jar
 
-  # docker:
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   if: always()
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
 
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v3
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-  #   - name: Configure AWS credentials
-  #     uses: aws-actions/configure-aws-credentials@v1
-  #     with:
-  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       aws-region: ap-south-1
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-south-1
 
-  #   - name: Log in to Amazon ECR
-  #     run: |
-  #       aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 211125715340.dkr.ecr.ap-south-1.amazonaws.com
+    - name: Log in to Amazon ECR
+      run: |
+        aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 211125715340.dkr.ecr.ap-south-1.amazonaws.com
 
-  #   - name: Build and push Docker image
-  #     env:
-  #       ECR_REGISTRY: 211125715340.dkr.ecr.ap-south-1.amazonaws.com
-  #       ECR_REPOSITORY: rakbankdemoregistry
-  #       IMAGE_TAG: ${{ github.sha }}
-  #     run: |
-  #       docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-  #       docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-  #       IMAGE_DIGEST=$(aws ecr describe-images --repository-name $ECR_REPOSITORY --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageDigest' --output text)
-  #       echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
+    - name: Build and push Docker image
+      env:
+        ECR_REGISTRY: 211125715340.dkr.ecr.ap-south-1.amazonaws.com
+        ECR_REPOSITORY: rakbankdemoregistry
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        IMAGE_DIGEST=$(aws ecr describe-images --repository-name $ECR_REPOSITORY --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageDigest' --output text)
+        echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
 
-  #   - name: Update Kubeconfig
-  #     run: |
-  #       aws eks update-kubeconfig --name my-cluster --region ap-south-1
+    - name: Update Kubeconfig
+      run: |
+        aws eks update-kubeconfig --name my-cluster --region ap-south-1
 
-  #   - name: Create or Update Kubernetes Deployment
-  #     run: |
-  #       kubectl create deployment rakbankdemoapp --image=211125715340.dkr.ecr.ap-south-1.amazonaws.com/rakbankdemoregistry@$IMAGE_DIGEST --dry-run=client -o yaml | kubectl apply -f -
-  #       kubectl rollout status deployment/rakbankdemoapp
+    - name: Create or Update Kubernetes Deployment
+      run: |
+        kubectl create deployment rakbankdemoapp --image=211125715340.dkr.ecr.ap-south-1.amazonaws.com/rakbankdemoregistry@$IMAGE_DIGEST --dry-run=client -o yaml | kubectl apply -f -
+        kubectl rollout status deployment/rakbankdemoapp
