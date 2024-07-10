@@ -32,6 +32,9 @@ jobs:
     - name: Build with Maven (Sonar Preparation)
       run: mvn clean compile --file demo/pom.xml
 
+    - name: Verify Java Version
+      run: java -version
+
     - name: Run SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@v1.4
       env:
