@@ -37,6 +37,7 @@ jobs:
 
     - name: Run SonarCloud Scan
       run: |
+        echo "Setting JAVA_HOME and PATH"
         export JAVA_HOME=/opt/hostedtoolcache/Java_Adopt_jdk/17.x.x/x64
         export PATH=$JAVA_HOME/bin:$PATH
         java -version
