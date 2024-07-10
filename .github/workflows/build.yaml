@@ -116,11 +116,10 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG)
-        echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        IMAGE_DIGEST=$(aws ecr describe-images --repository-name $ECR_REPOSITORY --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageDigest' --output text)
+        echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
 
     - name: Create or Update Kubernetes Deployment
       run: |
-        aws eks update-kubeconfig --name my-cluster --region ap-south-1
-        kubectl create deployment rakbankdemoapp --image=${{ env.IMAGE_DIGEST }} --dry-run=client -o yaml | kubectl apply -f -
+        kubectl create deployment rakbankdemoapp --image=211125715340.dkr.ecr.ap-south-1.amazonaws.com/rakbankdemoregistry@$IMAGE_DIGEST --dry-run=client -o yaml | kubectl apply -f -
