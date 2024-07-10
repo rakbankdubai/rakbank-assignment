@@ -36,18 +36,15 @@ jobs:
       run: java -version
 
     - name: Run SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@v1.4
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        JAVA_HOME: /opt/hostedtoolcache/Java_Adopt_jdk/17.x.x/x64
-      with:
-        projectKey: rakbankdubai_rakbank-assignment
-        organization: rakbankdubai
-        args: >
-          -Dsonar.projectKey=rakbankdubai_rakbank-assignment
-          -Dsonar.organization=rakbankdubai
-          -Dsonar.host.url=https://sonarcloud.io
-          -Dsonar.java.binaries=demo/target/classes
+      run: |
+        export JAVA_HOME=/opt/hostedtoolcache/Java_Adopt_jdk/17.x.x/x64
+        export PATH=$JAVA_HOME/bin:$PATH
+        java -version
+        mvn sonar:sonar \
+          -Dsonar.projectKey=rakbankdubai_rakbank-assignment \
+          -Dsonar.organization=rakbankdubai \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
     - name: Check Quality Gate
       id: check_quality_gate
