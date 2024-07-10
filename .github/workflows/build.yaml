@@ -32,9 +32,6 @@ jobs:
         curl -s "https://get.sdkman.io" | bash
         source "$HOME/.sdkman/bin/sdkman-init.sh"
         sdk install maven
-        echo "export SDKMAN_DIR=$HOME/.sdkman" >> $GITHUB_ENV
-        echo "source $HOME/.sdkman/bin/sdkman-init.sh" >> $GITHUB_ENV
-        echo "export PATH=$HOME/.sdkman/candidates/maven/current/bin:$PATH" >> $GITHUB_ENV
 
     - name: Verify Java and Maven Version
       run: |
@@ -58,7 +55,7 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
-        PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64/bin:$PATH:$HOME/.sdkman/candidates/maven/current/bin
+        PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64/bin:$PATH
       run: |
         source "$HOME/.sdkman/bin/sdkman-init.sh"
         java -version
