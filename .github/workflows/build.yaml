@@ -22,15 +22,15 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Set up Maven
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
+    - name: Install Maven
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y maven
 
-    - name: Verify Java Version
-      run: java -version
+    - name: Verify Java and Maven Version
+      run: |
+        java -version
+        mvn -version
 
     - name: Cache Maven packages
       uses: actions/cache@v3
@@ -46,7 +46,7 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
-        PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64/bin:$PATH
+        PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64/bin:$PATH:/usr/share/maven/bin
       run: |
         java -version
         mvn sonar:sonar \
