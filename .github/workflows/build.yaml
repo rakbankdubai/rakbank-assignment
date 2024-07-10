@@ -109,10 +109,6 @@ jobs:
       run: |
         aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 211125715340.dkr.ecr.ap-south-1.amazonaws.com
 
-    - name: Set up Kubeconfig
-      run: |
-        echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
-
     - name: Build and push Docker image
       env:
         ECR_REGISTRY: 211125715340.dkr.ecr.ap-south-1.amazonaws.com
