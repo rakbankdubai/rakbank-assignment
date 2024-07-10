@@ -121,5 +121,9 @@ jobs:
         echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
 
     - name: Create or Update Kubernetes Deployment
+      env:
+        KUBECONFIG: ${{ secrets.KUBECONFIG }}
       run: |
+        aws eks update-kubeconfig --name my-cluster --region ap-south-1
         kubectl create deployment rakbankdemoapp --image=211125715340.dkr.ecr.ap-south-1.amazonaws.com/rakbankdemoregistry@$IMAGE_DIGEST --dry-run=client -o yaml | kubectl apply -f -
+        kubectl rollout status deployment/rakbankdemoapp
