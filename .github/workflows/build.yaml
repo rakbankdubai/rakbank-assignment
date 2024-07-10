@@ -121,7 +121,4 @@ jobs:
     - name: Deploy to Kubernetes
       run: |
         aws eks update-kubeconfig --name my-cluster --region ap-south-1
-        #kubectl create deployment rakbankdemoapp --image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --dry-run=client -o yaml > deployment.yaml
-        #kubectl apply -f deployment.yaml
-        kubectl delete pod nginx
-        kubectl create deployment nginx --image=nginx
+        kubectl create deployment rakbankdemoapp --image=211125715340.dkr.ecr.ap-south-1.amazonaws.com/rakbankdemoregistry@sha256:d0edfc35051f486bd76fda895bc214d85dd085bb0e9455861ef17e10e27c0943
