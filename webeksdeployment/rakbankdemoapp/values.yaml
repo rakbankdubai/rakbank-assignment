@@ -1,0 +1,32 @@
+replicaCount: 2
+
+image:
+  repository: aaryadaarya/rakbank
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 8088
+
+hpa:
+  minReplicas: 1
+  maxReplicas: 10
+  cpu:
+    targetAverageUtilization: 50
+  memory:
+    targetAverageUtilization: 50
+
+readinessProbe:
+  httpGet:
+    path: /helloWorld
+    port: 8088
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+livenessProbe:
+  httpGet:
+    path: /helloWorld
+    port: 8088
+  initialDelaySeconds: 15
+  periodSeconds: 20
