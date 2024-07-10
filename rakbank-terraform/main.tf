@@ -26,7 +26,7 @@ module "vpc" {
   enable_vpn_gateway = true
 
   tags = {
-    Terraform = "true"
+    Terraform   = "true"
     Environment = "dev"
   }
 }
@@ -40,7 +40,7 @@ module "eks" {
   cluster_name    = "my-cluster"
   cluster_version = "1.29"
 
-  cluster_endpoint_public_access  = true
+  cluster_endpoint_public_access = true
 
   cluster_addons = {
     coredns = {
@@ -54,11 +54,11 @@ module "eks" {
     }
   }
 
-  vpc_id                   = module.vpc.vpc_id
-  
+  vpc_id = module.vpc.vpc_id
+
   control_plane_subnet_ids = module.vpc.public_subnets
 
-  subnet_ids               = module.vpc.private_subnets
+  subnet_ids = module.vpc.private_subnets
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
     instance_types = ["t3.small"]
