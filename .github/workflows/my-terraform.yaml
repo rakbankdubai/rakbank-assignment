@@ -54,7 +54,7 @@ jobs:
       - name: Set apply status
         id: set-status
         if: success()
-        run: echo "apply=success" >> $GITHUB_ENV
+        run: echo "apply=success" >> $GITHUB_OUTPUT
 
       - name: Terraform Destroy
         id: destroy
