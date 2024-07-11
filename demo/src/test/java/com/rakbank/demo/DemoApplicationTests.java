@@ -1,3 +1,9 @@
+package com.rakbank.demo;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import java.util.List;  // Ensure this import is present
+
 @SpringBootTest
 class DemoApplicationTests {
 
