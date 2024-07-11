@@ -52,9 +52,9 @@ jobs:
         run: cd ./rakbank-terraform &&  terraform apply -auto-approve
 
       - name: Set apply status
-        if:  steps.apply.outputs == 0 
-        run: echo "::set-output name=apply::success"
-
+        id: set-status
+        if: success()
+        run: echo "::set-output name=apply_status::success"
 
 
       - name: Terraform Destroy
@@ -64,6 +64,6 @@ jobs:
 
   buildStage:
     needs: [infra-creation]
-    if: ${{ needs.infra-creation.outputs.apply == 'success' }}
+    if: ${{ needs.infra-creation.outputs.apply_status == 'success' }}
     uses:  ./.github/workflows/build.yaml
       
