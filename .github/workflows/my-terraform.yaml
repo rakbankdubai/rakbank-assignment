@@ -52,7 +52,7 @@ jobs:
         run: cd ./rakbank-terraform &&  terraform apply -auto-approve
 
       - name: Set apply status
-        if: ${{ success() }}
+        if:  steps.apply.outputs == 0 
         run: echo "::set-output name=apply::success"
 
 
