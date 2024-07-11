@@ -32,10 +32,4 @@ class DemoApplicationTests {
         // This method is intentionally left empty because it serves as a placeholder for future implementation.
     }
 
-    // Additional methods for testing
-    private void doSomething() {
-        // Example implementation
-        System.out.println("Doing something...");
-    }
-
 }
