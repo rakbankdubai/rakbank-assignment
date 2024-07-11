@@ -60,5 +60,6 @@ jobs:
 
   buildStage:
     needs: [infra-creation]
+    if: ${{ needs.infra-creation.result == 'success' && needs.infra-creation.outputs.apply == 'success' }}
     uses:  ./.github/workflows/build.yaml
       
