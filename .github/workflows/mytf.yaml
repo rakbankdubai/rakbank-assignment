@@ -200,7 +200,7 @@ jobs:
   #       echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
   docker:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: always()
 
     steps:
