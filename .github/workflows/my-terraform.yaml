@@ -51,14 +51,12 @@ jobs:
         if: contains(github.event.head_commit.message, 'terraform apply')
         run: cd ./rakbank-terraform &&  terraform apply -auto-approve
 
-      # - name: Set apply status
-      #   id: set-status
-      #   if: success()
-      #   run: echo "apply=success" >> $GITHUB_OUTPUT
-      
       - name: Set apply status
-        if: steps.apply.conclusion == 'success'
-        run: echo "apply=success" >> $GITHUB_ENV
+        id: set-status
+        if: success()
+        run: echo "apply_status=true" >> $GITHUB_ENV
+      
+     
 
       - name: Terraform Destroy
         id: destroy
@@ -67,6 +65,6 @@ jobs:
 
   buildStage:
     needs: infra-creation
-    if: needs.infra-creation.outputs.apply == 'success'
+    if: needs.infra-creation.outputs.apply_status == 'true'
     uses:  ./.github/workflows/build.yaml
       
