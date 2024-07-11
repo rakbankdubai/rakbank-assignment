@@ -11,10 +11,16 @@ class DemoApplicationTests {
         // This method is intentionally left empty because it is used to check if the application context loads successfully.
     }
 
-    // Compliant methods
-    public void shouldNotBeEmpty() {
-        // TODO: Implement this method
-        doSomething();
+    public void shouldNotBeEmpty(List<String> items) {
+        if (items == null || items.isEmpty()) {
+            throw new IllegalArgumentException("The list should not be empty");
+        }
+
+        // Process each item in the list
+        for (String item : items) {
+            // Example processing: print each item
+            System.out.println(item);
+        }
     }
 
     public void notImplemented() {
@@ -26,8 +32,10 @@ class DemoApplicationTests {
         // This method is intentionally left empty because it serves as a placeholder for future implementation.
     }
 
+    // Additional methods for testing
     private void doSomething() {
         // Example implementation
+        System.out.println("Doing something...");
     }
 
 }
