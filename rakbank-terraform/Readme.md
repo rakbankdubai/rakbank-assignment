@@ -1,5 +1,5 @@
 #testing the pipeline.
-terraform apply 
+terraform apply
 destory
 
 
