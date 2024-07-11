@@ -69,4 +69,7 @@ jobs:
     needs: infra-creation
     if: needs.infra-creation.outputs.output1 == 'true'
     uses:  ./.github/workflows/build.yaml
+    with:
+      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       
