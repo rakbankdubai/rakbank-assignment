@@ -9,6 +9,8 @@ on:
 jobs:
   infra-creation:
     name: terraform infra creation
+    outputs:
+      output1: ${{ steps.set-status.outputs.apply_status }}
     runs-on: ubuntu-latest  # You can choose a different runner (e.g., ubuntu-18.04) if needed
     steps:
       - name: Checkout
@@ -54,7 +56,7 @@ jobs:
       - name: Set apply status
         id: set-status
         if: success()
-        run: echo "apply_status=true" >> $GITHUB_ENV
+        run: echo "apply_status=true" >> $GITHUB_OUTPUT
       
      
 
