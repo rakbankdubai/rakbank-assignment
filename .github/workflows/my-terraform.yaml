@@ -54,8 +54,7 @@ jobs:
       - name: Set apply status
         id: set-status
         if: success()
-        run: echo "::set-output name=apply_status::success"
-
+        run: echo "apply=success" >> $GITHUB_ENV
 
       - name: Terraform Destroy
         id: destroy
@@ -64,6 +63,6 @@ jobs:
 
   buildStage:
     needs: [infra-creation]
-    if: needs.infra-creation.outputs.apply_status == 'success'
+    if: needs.infra-creation.outputs.apply == 'success'
     uses:  ./.github/workflows/build.yaml
       
