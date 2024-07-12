@@ -225,7 +225,7 @@ jobs:
         IMAGE_DIGEST: ${{ steps.build.outputs.IMAGE_DIGEST }}
       run: |
         cd webeksdeployment/rakbankdemoapp
-        helm upgrade --install rakbankdemoapp ./rakbankdemoapp \
+        helm upgrade --install rakbankdemoapp ./rakbankdemoapp-0.1.0.tgz \
           --set image.repository=$ECR_REGISTRY/$ECR_REPOSITORY \
           --set image.tag=$IMAGE_TAG \
           --set image.digest=$IMAGE_DIGEST
