@@ -203,8 +203,30 @@ jobs:
       run: |
         aws eks update-kubeconfig --name my-cluster --region ap-south-1
 
-    - name: Create or Update Kubernetes Deployment
+    # - name: Create or Update Kubernetes Deployment
+    #   run: |
+    #     kubectl create deployment rakbankdemoapp --image=211125715340.dkr.ecr.ap-south-1.amazonaws.com/rakbankdemoregistry@$IMAGE_DIGEST --dry-run=client -o yaml | kubectl apply -f -
+    #     kubectl rollout status deployment/rakbankdemoapp
+
+    - name: Install Helm
       run: |
-        kubectl create deployment rakbankdemoapp --image=211125715340.dkr.ecr.ap-south-1.amazonaws.com/rakbankdemoregistry@$IMAGE_DIGEST --dry-run=client -o yaml | kubectl apply -f -
-        kubectl rollout status deployment/rakbankdemoapp
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+    - name: Package Helm Chart
+      run: |
+        cd webeksdeployment/rakbankdemoapp
+        helm package .
+
+    - name: Deploy Helm Chart
+      env:
+        ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+        ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        IMAGE_TAG: ${{ github.sha }}
+        IMAGE_DIGEST: ${{ steps.build.outputs.IMAGE_DIGEST }}
+      run: |
+        cd webeksdeployment/rakbankdemoapp
+        helm upgrade --install rakbankdemoapp ./rakbankdemoapp \
+          --set image.repository=$ECR_REGISTRY/$ECR_REPOSITORY \
+          --set image.tag=$IMAGE_TAG \
+          --set image.digest=$IMAGE_DIGEST
       
