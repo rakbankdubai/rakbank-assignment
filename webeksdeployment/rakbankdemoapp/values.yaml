@@ -1,14 +1,17 @@
 replicaCount: 2
 
-# image:
-#   repository: aaryadaarya/rakbank
-#   tag: "1"
-#   pullPolicy: IfNotPresent
+image:
+  #repository: aaryadaarya/rakbank
+  repository: ""
+  #tag: "1"
+  tag: ""
+  digest: ""
+  pullPolicy: IfNotPresent
 
-spec:
-  containers:
-  - image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
-    imagePullPolicy: {{ .Values.image.pullPolicy }}
+# spec:
+#   containers:
+#   - image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
+#     imagePullPolicy: {{ .Values.image.pullPolicy }}
 
 service:
   type: LoadBalancer
