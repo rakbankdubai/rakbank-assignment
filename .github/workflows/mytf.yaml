@@ -7,6 +7,20 @@ on:
     paths:
       - 'rakbank-terraform/**'
 jobs:
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Gitleaks
+      run: |
+        curl -sSL https://github.com/zricethezav/gitleaks/releases/download/v8.2.7/gitleaks-linux-amd64 -o gitleaks
+        chmod +x gitleaks
+        sudo mv gitleaks /usr/local/bin/
+    - name: Run Gitleaks Scan
+      run: gitleaks detect --source . --report-path gitleaks-report.json
+      
   infra-creation:
     name: terraform infra creation
     outputs:
