@@ -7,21 +7,10 @@ on:
     paths:
       - 'rakbank-terraform/**'
 jobs:
-  # secrets-scan:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v3
-
-  #   - name: Install Gitleaks
-  #     run: |
-  #       curl -sSL https://github.com/zricethezav/gitleaks/releases/download/v8.2.7/gitleaks-linux-amd64 -o gitleaks
-  #       chmod +x gitleaks
-  #       sudo mv gitleaks /usr/local/bin/
-  #   - name: Run Gitleaks Scan
-  #     run: gitleaks detect --source . --report-path gitleaks-report.json
-
   secrets-scan:
+    name: gitleak scanning
+    outputs:
+      output1: ${{ steps.leak-status.outputs.gitleak_status }}
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -38,10 +27,14 @@ jobs:
     - name: Run Gitleaks Scan
       run: gitleaks detect --source . --report-path gitleaks-report.json
       
+    - name: Set apply status
+      id: leak-status
+      if: success()
+      run: echo "gitleak_status=true" >> $GITHUB_OUTPUT
+      
   infra-creation:
     name: terraform infra creation
-    outputs:
-      output1: ${{ steps.set-status.outputs.apply_status }}
+    if: needs.secrets-scan.outputs.output1 == 'true'
     runs-on: ubuntu-latest  # You can choose a different runner (e.g., ubuntu-18.04) if needed
     steps:
       - name: Checkout
@@ -89,8 +82,6 @@ jobs:
         if: success()
         run: echo "apply_status=true" >> $GITHUB_OUTPUT
       
-     
-
       - name: Terraform Destroy
         id: destroy
         if: contains(github.event.head_commit.message, 'terraform destroy')
@@ -233,12 +224,7 @@ jobs:
     - name: Update Kubeconfig
       run: |
         aws eks update-kubeconfig --name my-cluster --region ap-south-1
-
-    # - name: Create or Update Kubernetes Deployment
-    #   run: |
-    #     kubectl create deployment rakbankdemoapp --image=211125715340.dkr.ecr.ap-south-1.amazonaws.com/rakbankdemoregistry@$IMAGE_DIGEST --dry-run=client -o yaml | kubectl apply -f -
-    #     kubectl rollout status deployment/rakbankdemoapp
-
+        
     - name: Install Helm
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
@@ -258,7 +244,4 @@ jobs:
         cd webeksdeployment/rakbankdemoapp
         ls -lrth
         helm upgrade --install rakbankdemoapp ./rakbankdemoapp-0.1.0.tgz
-          # --set image.repository=$ECR_REGISTRY/$ECR_REPOSITORY \
-          # --set image.tag=$IMAGE_TAG \
-          # --set image.digest=$IMAGE_DIGEST
       
