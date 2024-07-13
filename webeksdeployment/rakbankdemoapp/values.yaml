@@ -1,18 +1,10 @@
 replicaCount: 2
 
 image:
-  #repository: aaryadaarya/rakbank
-  repository: ""
-  #tag: "1"
-  tag: ""
-  digest: ""
+  repository: 211125715340.dkr.ecr.ap-south-1.amazonaws.com/rakbankdemoregistry
+  tag: "ab617e2842796fe37fe6d0c14567d0c789906c6a"
   pullPolicy: IfNotPresent
-
-# spec:
-#   containers:
-#   - image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
-#     imagePullPolicy: {{ .Values.image.pullPolicy }}
-
+  
 service:
   type: LoadBalancer
   port: 8088
