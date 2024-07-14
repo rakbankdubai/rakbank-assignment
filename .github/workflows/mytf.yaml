@@ -126,7 +126,7 @@ jobs:
 
   build:
     needs: sonar
-    if: needs.sonar.result == 'success'
+    if: needs.infra-creation.outputs.destroy_status != 'true'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -156,7 +156,7 @@ jobs:
 
   docker:
     needs: build
-    if: needs.build.result == 'success'
+    if: needs.infra-creation.outputs.destroy_status != 'true'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -186,6 +186,14 @@ jobs:
         echo "Getting the IMAGE_DIGEST"
         IMAGE_DIGEST=$(aws ecr describe-images --repository-name $ECR_REPOSITORY --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageDigest' --output text)
         echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
+
+  helm-deployment:
+    needs: docker
+    if: needs.infra-creation.outputs.destroy_status != 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Update Kubeconfig
       run: |
