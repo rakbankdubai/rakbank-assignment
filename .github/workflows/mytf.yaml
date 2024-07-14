@@ -29,7 +29,8 @@ jobs:
     needs: secrets-scan
     runs-on: ubuntu-latest
     outputs:
-      output1: ${{ steps.set-status.outputs.apply_status }}
+      apply_status: ${{ steps.set-status.outputs.apply_status }}
+      destroy_status: ${{ steps.set-destroy-status.outputs.destroy_status }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -76,10 +77,15 @@ jobs:
       if: contains(github.event.head_commit.message, 'terraform destroy')
       run: cd ./rakbank-terraform && terraform destroy -auto-approve
 
+    - name: Set destroy status
+      id: set-destroy-status
+      if: contains(github.event.head_commit.message, 'terraform destroy')
+      run: echo "destroy_status=true" >> $GITHUB_OUTPUT
+
   sonar:
     needs: infra-creation
+    if: needs.infra-creation.outputs.destroy_status != 'true' && needs.infra-creation.outputs.apply_status == 'true'
     runs-on: ubuntu-latest
-    if: needs.infra-creation.outputs.output1 == 'true'
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -120,6 +126,7 @@ jobs:
 
   build:
     needs: sonar
+    if: needs.sonar.result == 'success'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -149,8 +156,8 @@ jobs:
 
   docker:
     needs: build
+    if: needs.build.result == 'success'
     runs-on: ubuntu-latest
-    if: always()
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
