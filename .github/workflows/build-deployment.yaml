@@ -1,0 +1,148 @@
+name: App Deployment
+
+on: 
+  workflow_dispatch: 
+  push:
+    branches:
+      - main
+    paths:
+      - '!rakbank-terraform/**'
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Install Maven
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y maven
+
+    - name: Verify Java and Maven Version
+      run: |
+        java -version
+        mvn -version
+
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven
+
+    - name: Build with Maven (Sonar Preparation)
+      run: mvn clean compile
+      working-directory: demo
+
+    - name: Run SonarCloud Scan
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        mvn sonar:sonar -Dsonar.projectKey=rakbankdubai_rakbank-assignment -Dsonar.organization=rakbankdubai -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      working-directory: demo
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven
+
+    - name: Build with Maven
+      run: |
+        mvn clean install
+        mvn -B package
+      working-directory: demo
+
+    - name: Verify .jar file exists
+      run: ls -l demo/target/*.jar
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-south-1
+
+    - name: Log in to Amazon ECR
+      run: |
+        aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 211125715340.dkr.ecr.ap-south-1.amazonaws.com
+
+    - name: Build and push Docker image
+      env:
+        ECR_REGISTRY: 211125715340.dkr.ecr.ap-south-1.amazonaws.com
+        ECR_REPOSITORY: rakbankdemoregistry
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        echo "Building Docker image..."
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        echo "Pushing Docker image..."
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "Getting the IMAGE_DIGEST"
+        IMAGE_DIGEST=$(aws ecr describe-images --repository-name $ECR_REPOSITORY --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageDigest' --output text)
+        echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
+
+  helm-deployment:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup AWS Credentials
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+
+    - name: Update Kubeconfig
+      run: |
+        aws eks update-kubeconfig --name my-cluster --region ap-south-1
+
+    - name: Install Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+    - name: Package Helm Chart
+      run: |
+        cd webeksdeployment/rakbankdemoapp
+        helm package .
+
+    - name: Deploy Helm Chart
+      env:
+        ECR_REGISTRY: 211125715340.dkr.ecr.ap-south-1.amazonaws.com
+        ECR_REPOSITORY: rakbankdemoregistry
+        IMAGE_TAG: ${{ github.sha }}
+        IMAGE_DIGEST: ${{ steps.build.outputs.IMAGE_DIGEST }}
+      run: |
+        cd webeksdeployment/rakbankdemoapp
+        ls -lrth
+        helm upgrade --install rakbankdemoapp ./rakbankdemoapp-0.1.0.tgz
+

@@ -1,0 +1,84 @@
+name: Infra Creation
+
+on: 
+  workflow_dispatch: 
+  push:
+    branches:
+      - main
+    paths:
+      - 'rakbank-terraform/**'
+
+jobs:
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Gitleaks
+      run: |
+        curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.2.7/gitleaks_8.2.7_linux_x64.tar.gz -o gitleaks.tar.gz
+        tar -xzf gitleaks.tar.gz
+        chmod +x gitleaks
+        sudo mv gitleaks /usr/local/bin/
+
+    - name: Run Gitleaks Scan
+      run: gitleaks detect --source . --report-path gitleaks-report.json
+
+  infra-creation:
+    needs: secrets-scan
+    runs-on: ubuntu-latest
+    outputs:
+      apply_status: ${{ steps.set-status.outputs.apply_status }}
+      destroy_status: ${{ steps.set-destroy-status.outputs.destroy_status }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup AWS Credentials
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+
+    - name: Terraform Init
+      id: fmt
+      run: cd ./rakbank-terraform && terraform init
+
+    - name: Terraform fmt
+      id: init
+      run: cd ./rakbank-terraform && terraform fmt --check
+
+    - name: Terraform Validate
+      id: validate
+      run: cd ./rakbank-terraform && terraform validate -no-color
+
+    - name: Terraform Plan
+      id: plan
+      run: |
+        cd ./rakbank-terraform 
+        terraform plan --out ./tfplan -no-color
+        terraform show -json ./tfplan > ./tfplan.json
+
+    - name: Terraform Apply
+      id: apply
+      if: contains(github.event.head_commit.message, 'terraform apply')
+      run: cd ./rakbank-terraform && terraform apply -auto-approve
+
+    - name: Set apply status
+      id: set-status
+      if: success()
+      run: echo "apply_status=true" >> $GITHUB_OUTPUT
+
+    - name: Terraform Destroy
+      id: destroy
+      if: contains(github.event.head_commit.message, 'terraform destroy')
+      run: cd ./rakbank-terraform && terraform destroy -auto-approve
+
+    - name: Set destroy status
+      id: set-destroy-status
+      if: contains(github.event.head_commit.message, 'terraform destroy')
+      run: echo "destroy_status=true" >> $GITHUB_OUTPUT
+
