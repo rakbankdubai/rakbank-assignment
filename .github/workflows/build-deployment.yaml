@@ -50,6 +50,7 @@ jobs:
       working-directory: demo
 
   build:
+    needs: sonar
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -78,6 +79,7 @@ jobs:
       run: ls -l demo/target/*.jar
 
   docker:
+    needs: build
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -109,6 +111,7 @@ jobs:
         echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> $GITHUB_ENV
 
   helm-deployment:
+    needs: docker
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -145,4 +148,3 @@ jobs:
         cd webeksdeployment/rakbankdemoapp
         ls -lrth
         helm upgrade --install rakbankdemoapp ./rakbankdemoapp-0.1.0.tgz
-
