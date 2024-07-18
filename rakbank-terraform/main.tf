@@ -19,7 +19,6 @@ module "eks" {
     }
   }
 
-
   vpc_id = module.vpc.vpc_id
 
   control_plane_subnet_ids = module.vpc.public_subnets
