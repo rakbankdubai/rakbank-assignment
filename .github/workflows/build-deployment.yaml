@@ -50,28 +50,28 @@ jobs:
       working-directory: demo
 
       #----
-    # - name: Check Quality Gate
-    #   id: check_quality_gate
-    #   run: |
-    #     echo "Checking Quality Gate status..."
-    #     status=$(curl -s -u $SONAR_TOKEN: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=rakbankdubai_rakbank-assignment" | jq -r .projectStatus.status)
-    #     echo "Quality Gate status: $status"
-    #     if [ "$status" != "OK" ]; then
-    #       echo "Quality Gate failed"
-    #       echo "::set-output name=quality_gate_status::failed"
-    #       exit 1
-    #     else
-    #       echo "Quality Gate passed"
-    #       echo "::set-output name=quality_gate_status::passed"
-    #     fi
-    #   env:
-    #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    - name: Check Quality Gate
+      id: check_quality_gate
+      run: |
+        echo "Checking Quality Gate status..."
+        status=$(curl -s -u $SONAR_TOKEN: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=rakbankdubai_rakbank-assignment" | jq -r .projectStatus.status)
+        echo "Quality Gate status: $status"
+        if [ "$status" != "OK" ]; then
+          echo "Quality Gate failed"
+          echo "::set-output name=quality_gate_status::failed"
+          exit 1
+        else
+          echo "Quality Gate passed"
+          echo "::set-output name=quality_gate_status::passed"
+        fi
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       #---
 
   build:
     needs: sonar
     runs-on: ubuntu-latest
-    #if: needs.sonar.outputs.quality_gate_status == 'passed'
+    if: needs.sonar.outputs.quality_gate_status == 'passed'
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
