@@ -2,7 +2,7 @@ package com.rakbank.demo;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import com.rakbank.demo.controller;
+import com.rakbank.demo.controller.Rakbankcontroller;
 
 @SpringBootTest
 class DemoApplicationTests {
