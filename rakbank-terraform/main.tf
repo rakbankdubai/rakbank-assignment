@@ -47,3 +47,4 @@ module "eks" {
     Terraform   = "true"
   }
 }
+
