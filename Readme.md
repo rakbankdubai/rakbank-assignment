@@ -1,4 +1,5 @@
-# Rakbank Assignment
+# EKS-DeploymentUsingGithubAction
+# Infra-creation-cicd-with-terrafrom-using-GithubAction
 
 This repository contains the necessary configurations and scripts for deploying a sample application to an AWS EKS cluster using Helm, along with tools for code quality, dependency management, and security scanning.
 
