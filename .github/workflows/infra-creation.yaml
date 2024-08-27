@@ -45,7 +45,7 @@ jobs:
 
     - name: Terraform Init
       id: fmt
-      run: cd ./rakbank-terraform && terraform init
+      run: cd ./rakbank-terraform && terraform init -upgrade
 
     - name: Terraform fmt
       id: init
